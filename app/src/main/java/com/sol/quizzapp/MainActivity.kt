@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.sol.quizzapp.presentation.QuizScreen
+import androidx.navigation.compose.rememberNavController
+import com.sol.quizzapp.navigation.QuizNavHost
 import com.sol.quizzapp.ui.theme.QuizzAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,7 +16,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             QuizzAppTheme {
-                QuizScreen()
+                val navController = rememberNavController()
+                QuizNavHost(navController)
             }
         }
     }

@@ -21,10 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.sol.quizzapp.domain.model.quiz.QuizResult
+import com.sol.quizzapp.navigation.QuizzesScreen
 
 @Composable
-fun QuizScreen(viewModel: QuizViewModel = hiltViewModel()) {
+fun QuizScreen(
+    navController: NavHostController,
+    categoryId: Int,
+    difficultSelected: String,
+    viewModel: QuizViewModel = hiltViewModel()
+) {
+
     val quiz by viewModel.quiz.observeAsState(emptyList())
     val currentQuestionIndex by viewModel.currentQuestionIndex.observeAsState(0)
     val selectedAnswer by viewModel.selectedAnswer.observeAsState(null)
@@ -34,8 +42,8 @@ fun QuizScreen(viewModel: QuizViewModel = hiltViewModel()) {
     val score by viewModel.score.observeAsState(0)
     val timeExpired by viewModel.timeExpired.observeAsState(false)
 
-    LaunchedEffect(true) {
-        viewModel.getLoad()
+    LaunchedEffect(categoryId, difficultSelected) {
+        viewModel.getLoad(categoryId, difficultSelected)
     }
 
     LaunchedEffect(key1 = timerValue) {
@@ -46,7 +54,7 @@ fun QuizScreen(viewModel: QuizViewModel = hiltViewModel()) {
     }
 
     if (isQuizFinished) {
-        ResultScreen(score = score, totalQuestions = quiz.size)
+        ResultScreen(score = score, totalQuestions = quiz.size, navController)
     } else if (quiz.isNotEmpty()) {
         val currentQuizItem = quiz[currentQuestionIndex]
         Column(
@@ -142,7 +150,7 @@ fun ItemQuiz(
 }
 
 @Composable
-fun ResultScreen(score: Int, totalQuestions: Int) {
+fun ResultScreen(score: Int, totalQuestions: Int, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -160,8 +168,8 @@ fun ResultScreen(score: Int, totalQuestions: Int) {
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { /* Reiniciar o navegar */ }) {
-            Text("Volver a jugar")
+        Button(onClick = { navController.navigate(QuizzesScreen.QuizMenuScreen.route) }) {
+            Text("Volver al menu")
         }
     }
 }

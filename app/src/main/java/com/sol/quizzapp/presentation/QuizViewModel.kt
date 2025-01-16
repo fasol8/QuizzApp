@@ -46,8 +46,8 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
         startTimer()
     }
 
-    fun getLoad() {
-        getQuiz(10, 32, "easy")
+    fun getLoad(categoryId: Int, difficultSelected: String) {
+        getQuiz(10, categoryId, difficultSelected)
     }
 
     private fun getQuiz(amount: Int, category: Int, difficulty: String) {
@@ -107,7 +107,7 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (_timerValue.value ?: 0 > 0) {
+            while ((_timerValue.value ?: 0) > 0) {
                 delay(1000)
                 _timerValue.value = (_timerValue.value ?: 1) - 1
             }
