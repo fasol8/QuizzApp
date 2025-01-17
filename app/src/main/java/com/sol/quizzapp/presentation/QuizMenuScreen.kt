@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -19,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
 import com.sol.quizzapp.navigation.QuizzesScreen
 import java.util.Locale
@@ -39,7 +43,7 @@ import java.util.Locale
 @Composable
 fun QuizMenu(navController: NavController, viewModel: QuizViewModel = hiltViewModel()) {
 
-    var difficultSelected = remember { mutableStateOf("easy") }
+    val difficultSelected = remember { mutableStateOf("easy") }
 
     Column(
         modifier = Modifier
@@ -47,7 +51,16 @@ fun QuizMenu(navController: NavController, viewModel: QuizViewModel = hiltViewMo
             .padding(top = 48.dp, start = 8.dp, end = 8.dp)
     ) {
         DifficultyBox(difficultSelected)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
+        Button(
+            onClick = { navController.navigate(QuizzesScreen.QuizScreen.route + "/${0.toInt()}-${difficultSelected.value}") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Text("Random Quiz")
+        }
+        Spacer(Modifier.height(4.dp))
         val categories = TriviaCategory.entries
         TriviaCategoryGrid(categories, navController, difficultSelected)
     }
@@ -59,25 +72,55 @@ fun DifficultyBox(difficultSelected: MutableState<String>) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
         val difficulties = listOf("easy", "medium", "hard")
 
-        difficulties.forEach { difficulty ->
-            val colorSelected = if (difficultSelected.value == difficulty)
-                MaterialTheme.colorScheme.primary // Color resaltado
-            else
-                MaterialTheme.colorScheme.error // Color normal
-            Button(
-                onClick = { difficultSelected.value = difficulty },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorSelected,
-                    contentColor = Color.White,
-                    disabledContainerColor = colorSelected,
-                    disabledContentColor = Color.White
-                )
-            ) {
-                Text(difficulty.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+        Column {
+            val iconDifficult = when (difficultSelected.value) {
+                "hard" -> {
+                    R.drawable.hard
+                }
+
+                "medium" -> {
+                    R.drawable.medium
+                }
+
+                "easy" -> {
+                    R.drawable.easy
+                }
+
+                else -> {
+                    R.drawable.difficult_default
+                }
+            }
+            Text("Difficult selected")
+            Spacer(Modifier.height(4.dp))
+            Icon(
+                painter = painterResource(iconDifficult),
+                contentDescription = "difficult selected",
+                modifier = Modifier.size(100.dp),
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(text = difficultSelected.value)
+        }
+        Column() {
+            difficulties.forEach { difficulty ->
+                val colorSelected = if (difficultSelected.value == difficulty)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.error
+                Button(
+                    onClick = { difficultSelected.value = difficulty },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorSelected,
+                        contentColor = Color.White,
+                        disabledContainerColor = colorSelected,
+                        disabledContentColor = Color.White
+                    )
+                ) {
+                    Text(difficulty.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+                }
             }
         }
     }
@@ -103,7 +146,6 @@ fun TriviaCategoryGrid(
 
 @Composable
 fun TriviaCategoryItem(category: TriviaCategory, onClick: () -> Unit) {
-    Card { }
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -117,12 +159,19 @@ fun TriviaCategoryItem(category: TriviaCategory, onClick: () -> Unit) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = category.displayName,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(8.dp)
-            )
+            Column {
+                Icon(
+                    painter = painterResource(category.icon),
+                    contentDescription = "icon category",
+                    modifier = Modifier.size(100.dp)
+                )
+                Text(
+                    text = category.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
     }
 }

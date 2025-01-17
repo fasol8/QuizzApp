@@ -12,4 +12,9 @@ interface OTDBApi {
         @Query("category") category: Int,
         @Query("difficulty") difficulty: String = "easy",
     ): QuizResponse
+
+    @GET("api.php")
+    suspend fun getRandomQuiz(
+        @Query("amount") amount: Int,
+    ): QuizResponse
 }

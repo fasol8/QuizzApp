@@ -9,4 +9,8 @@ class QuizRepository @Inject constructor(private val api: OTDBApi) {
     suspend fun getQuiz(amount: Int, category: Int, difficulty: String): QuizResponse {
         return api.getQuiz(amount, category, difficulty)
     }
+
+    suspend fun getRandomQuiz(amount: Int): QuizResponse {
+        return api.getRandomQuiz(amount)
+    }
 }

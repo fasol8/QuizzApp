@@ -53,7 +53,8 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
     private fun getQuiz(amount: Int, category: Int, difficulty: String) {
         viewModelScope.launch {
             try {
-                val response = getQuizUS.getQuiz(amount, category, difficulty)
+                val response = if (category == 0) getQuizUS.getRandomQuiz(amount) else
+                    getQuizUS.getQuiz(amount, category, difficulty)
                 _quiz.value = response.results
             } catch (e: Exception) {
                 Log.i("Error", e.message.toString())

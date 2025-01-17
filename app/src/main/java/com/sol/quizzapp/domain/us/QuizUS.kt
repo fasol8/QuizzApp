@@ -9,4 +9,8 @@ class QuizUS @Inject constructor(private val repository: QuizRepository) {
     suspend fun getQuiz(amount: Int, category: Int, difficulty: String): QuizResponse {
         return repository.getQuiz(amount, category, difficulty)
     }
+
+    suspend fun getRandomQuiz(amount: Int): QuizResponse {
+        return repository.getRandomQuiz(amount)
+    }
 }
