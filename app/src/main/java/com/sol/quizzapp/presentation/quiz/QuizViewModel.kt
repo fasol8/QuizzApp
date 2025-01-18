@@ -1,4 +1,4 @@
-package com.sol.quizzapp.presentation
+package com.sol.quizzapp.presentation.quiz
 
 import android.util.Log
 import androidx.lifecycle.LiveData

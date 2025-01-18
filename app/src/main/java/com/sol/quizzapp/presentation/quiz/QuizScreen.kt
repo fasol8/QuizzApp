@@ -1,4 +1,4 @@
-package com.sol.quizzapp.presentation
+package com.sol.quizzapp.presentation.quiz
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,7 +32,6 @@ fun QuizScreen(
     difficultSelected: String,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
-
     val quiz by viewModel.quiz.observeAsState(emptyList())
     val currentQuestionIndex by viewModel.currentQuestionIndex.observeAsState(0)
     val selectedAnswer by viewModel.selectedAnswer.observeAsState(null)
@@ -74,9 +73,7 @@ fun QuizScreen(
                 ItemQuiz(
                     quizItem = currentQuizItem,
                     selectedAnswer = selectedAnswer,
-                    onAnswerSelected = { selectedAnswer ->
-                        viewModel.onAnswerSelected(selectedAnswer)
-                    },
+                    onAnswerSelected = { viewModel.onAnswerSelected(it) },
                     timeExpired = timeExpired
                 )
             }

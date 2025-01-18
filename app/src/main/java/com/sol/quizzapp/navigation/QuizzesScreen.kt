@@ -2,6 +2,8 @@ package com.sol.quizzapp.navigation
 
 sealed class QuizzesScreen(val route: String, val label: String) {
 
+    data object MenuScreen : QuizzesScreen("menuScreen", "Menu Screen")
     data object QuizMenuScreen : QuizzesScreen("quizMenuScreen", "Quiz Menu Screen")
     data object QuizScreen : QuizzesScreen("quizScreen", "Quiz Screen")
+    data object FlagScreen : QuizzesScreen("flagScreen", "Flag Screen")
 }

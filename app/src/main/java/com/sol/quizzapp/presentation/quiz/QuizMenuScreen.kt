@@ -1,4 +1,4 @@
-package com.sol.quizzapp.presentation
+package com.sol.quizzapp.presentation.quiz
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
@@ -41,7 +40,7 @@ import com.sol.quizzapp.navigation.QuizzesScreen
 import java.util.Locale
 
 @Composable
-fun QuizMenu(navController: NavController, viewModel: QuizViewModel = hiltViewModel()) {
+fun QuizMenu(navController: NavController) {
 
     val difficultSelected = remember { mutableStateOf("easy") }
 
