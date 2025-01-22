@@ -10,6 +10,8 @@ import com.sol.quizzapp.presentation.MenuScreen
 import com.sol.quizzapp.presentation.flag.FlagScreen
 import com.sol.quizzapp.presentation.quiz.QuizMenu
 import com.sol.quizzapp.presentation.quiz.QuizScreen
+import com.sol.quizzapp.presentation.wordle.WordleMenu
+import com.sol.quizzapp.presentation.wordle.WordleScreen
 
 @Composable
 fun QuizNavHost(navController: NavHostController) {
@@ -28,5 +30,13 @@ fun QuizNavHost(navController: NavHostController) {
             QuizScreen(navController, categoryId, difficultSelected)
         }
         composable(QuizzesScreen.FlagScreen.route) { FlagScreen(navController) }
+        composable(QuizzesScreen.WordleMenuScreen.route) { WordleMenu(navController) }
+        composable(
+            QuizzesScreen.WordleScreen.route + "/{cat}",
+            arguments = listOf(navArgument("cat") { type = NavType.StringType })
+        ) { navBackStackEntry ->
+            val categoryString = navBackStackEntry.arguments?.getString("cat") ?: "default"
+            WordleScreen(navController, categoryString)
+        }
     }
 }

@@ -77,21 +77,10 @@ fun DifficultyBox(difficultSelected: MutableState<String>) {
 
         Column {
             val iconDifficult = when (difficultSelected.value) {
-                "hard" -> {
-                    R.drawable.hard
-                }
-
-                "medium" -> {
-                    R.drawable.medium
-                }
-
-                "easy" -> {
-                    R.drawable.easy
-                }
-
-                else -> {
-                    R.drawable.difficult_default
-                }
+                "hard" -> R.drawable.hard
+                "medium" -> R.drawable.medium
+                "easy" -> R.drawable.easy
+                else -> R.drawable.difficult_default
             }
             Text("Difficult selected")
             Spacer(Modifier.height(4.dp))
