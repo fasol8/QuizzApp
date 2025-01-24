@@ -1,18 +1,21 @@
 package com.sol.quizzapp.presentation.flag
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sol.quizzapp.data.local.flag.FlagEntity
 import com.sol.quizzapp.domain.model.flags.Countries
 import com.sol.quizzapp.domain.model.flags.Question
+import com.sol.quizzapp.domain.us.FlagUS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FlagViewModel @Inject constructor() : ViewModel() {
+class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewModel() {
 
     private val totalRounds = 10
     private val countries = Countries.values()
@@ -38,15 +41,16 @@ class FlagViewModel @Inject constructor() : ViewModel() {
     private val _nextButtonEnabled = MutableStateFlow(false)
     val nextButtonEnabled: StateFlow<Boolean> = _nextButtonEnabled
 
-    private val _timeExpired = MutableLiveData(false)
-    val timeExpired: LiveData<Boolean> get() = _timeExpired
+    private val _timeExpired = MutableStateFlow(false)
+    val timeExpired: StateFlow<Boolean> get() = _timeExpired
 
+    private var resultSaved = MutableStateFlow(false)
     private val usedCountries = mutableListOf<Countries>()
-
     private var timerJob: Job? = null
 
     init {
         loadNextQuestion()
+        resetResultSaved()
     }
 
     private fun generateQuestion(): Question {
@@ -103,5 +107,27 @@ class FlagViewModel @Inject constructor() : ViewModel() {
     fun onNextClicked() {
         _currentRound.value += 1
         loadNextQuestion()
+    }
+
+    fun saveResult(correctAnswers: Int, totalQuestions: Int) {
+        if (resultSaved.value == true) return
+
+        viewModelScope.launch {
+            try {
+                getFlagUS.insertFlag(
+                    FlagEntity(
+                        correctAnswers = correctAnswers,
+                        totalQuestions = totalQuestions
+                    )
+                )
+                resultSaved.value = true
+            } catch (e: Exception) {
+                Log.i("Error", e.message.toString())
+            }
+        }
+    }
+
+    private fun resetResultSaved() {
+        resultSaved.value = false
     }
 }

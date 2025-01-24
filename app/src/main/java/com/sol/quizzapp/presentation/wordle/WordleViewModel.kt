@@ -3,6 +3,7 @@ package com.sol.quizzapp.presentation.wordle
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sol.quizzapp.data.local.wordle.WordleEntity
 import com.sol.quizzapp.domain.model.wordle.WordleGameState
 import com.sol.quizzapp.domain.us.WordUS
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,13 +15,17 @@ import javax.inject.Inject
 @HiltViewModel
 class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewModel() {
 
-    private val _word = MutableStateFlow<String?>(null)
-    val word: StateFlow<String?> = _word
-
     private val _gameState = MutableStateFlow(WordleGameState(targetWord = "-----"))
     val gameState: StateFlow<WordleGameState> = _gameState
 
-    fun loadRandomWord(category: String) {
+    private var _resultSaved = MutableStateFlow(false)
+
+    fun startNewGame(category: String) {
+        resetResultSaved()
+        loadRandomWord(category)
+    }
+
+    private fun loadRandomWord(category: String) {
         viewModelScope.launch {
             try {
                 val maxAttempts = when (category) {
@@ -37,7 +42,6 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
                 }
                 val response = getWordUS.getWordLength(length)
                 if (response.isNotEmpty()) {
-                    _word.value = response.first()
                     _gameState.value = WordleGameState(
                         targetWord = response.first(),
                         maxAttempts = maxAttempts
@@ -60,6 +64,7 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
         val newFeedback = gameState.feedback + listOf(result)
 
         if (guess == gameState.targetWord) {
+
             _gameState.value = gameState.copy(
                 gameFinished = true,
                 gameWon = true,
@@ -112,5 +117,29 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
 
     fun updateCurrentGuess(newGuess: String) {
         _gameState.value = _gameState.value.copy(currentGuess = newGuess)
+    }
+
+    fun saveResult(word: String, difficulty: String, attempts: Int, gameWon: Boolean) {
+        if (_resultSaved.value) return
+
+        viewModelScope.launch {
+            try {
+                getWordUS.insertWordle(
+                    WordleEntity(
+                        gameWon = gameWon,
+                        word = word,
+                        attempts = attempts,
+                        difficulty = difficulty,
+                    )
+                )
+                _resultSaved.value = true
+            } catch (e: Exception) {
+                Log.i("Error", e.message.toString())
+            }
+        }
+    }
+
+    private fun resetResultSaved() {
+        _resultSaved.value = false
     }
 }

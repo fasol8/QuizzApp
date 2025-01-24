@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sol.quizzapp.data.local.quiz.QuizEntity
 import com.sol.quizzapp.domain.model.quiz.QuizResult
 import com.sol.quizzapp.domain.us.QuizUS
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +41,7 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
     private val _timeExpired = MutableLiveData(false)
     val timeExpired: LiveData<Boolean> get() = _timeExpired
 
+    private var _resultSaved = MutableLiveData(false)
     private var timerJob: Job? = null
 
     init {
@@ -47,6 +49,7 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
     }
 
     fun getLoad(categoryId: Int, difficultSelected: String) {
+        resetResultSaved()
         getQuiz(10, categoryId, difficultSelected)
     }
 
@@ -125,5 +128,29 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
             val currentQuiz = _quiz.value?.get(currentIndex)
             _selectedAnswer.value = currentQuiz?.correctAnswer
         }
+    }
+
+    fun saveResult(category: String, difficulty: String, correctAnswers: Int, totalQuestions: Int) {
+        if (_resultSaved.value == true) return
+
+        viewModelScope.launch {
+            try {
+                getQuizUS.insertQuiz(
+                    QuizEntity(
+                        category = category,
+                        difficulty = difficulty,
+                        correctAnswers = correctAnswers,
+                        totalQuestions = totalQuestions
+                    )
+                )
+                _resultSaved.value = true
+            } catch (e: Exception) {
+                Log.i("Error", e.message.toString())
+            }
+        }
+    }
+
+    private fun resetResultSaved() {
+        _resultSaved.value = false
     }
 }

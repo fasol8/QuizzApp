@@ -38,5 +38,6 @@ fun QuizNavHost(navController: NavHostController) {
             val categoryString = navBackStackEntry.arguments?.getString("cat") ?: "default"
             WordleScreen(navController, categoryString)
         }
+        composable(QuizzesScreen.ResultScreen.route){ com.sol.quizzapp.presentation.results.ResultScreen() }
     }
 }

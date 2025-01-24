@@ -50,6 +50,15 @@ fun MenuScreen(navController: NavController) {
                 onClick = { navController.navigate(QuizzesScreen.WordleMenuScreen.route) }) {
                 Text("WORDLE")
             }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+                    .padding(vertical = 16.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+                onClick = { navController.navigate(QuizzesScreen.ResultScreen.route) }) {
+                Text("RESULT")
+            }
         }
     }
 }

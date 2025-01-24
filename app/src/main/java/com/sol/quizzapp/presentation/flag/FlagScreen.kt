@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +40,7 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
     val remainingTime by viewModel.remainingTime.collectAsState()
     val selectedAnswer by viewModel.selectedAnswer.collectAsState(null)
     val nextButtonEnabled by viewModel.nextButtonEnabled.collectAsState()
-    val timeExpired by viewModel.timeExpired.observeAsState(false)
+    val timeExpired by viewModel.timeExpired.collectAsState(false)
 
     LaunchedEffect(remainingTime, selectedAnswer) {
         if (remainingTime > 0 && selectedAnswer == null) {
@@ -51,7 +50,7 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
     }
 
     if (quizFinished) {
-        QuizResult(score = score, totalRounds = 10, navController)
+        QuizResult(score = score, totalRounds = 10, navController, viewModel)
     } else if (question != null) {
         Column(
             modifier = Modifier
@@ -161,7 +160,15 @@ fun QuizQuestion(
 }
 
 @Composable
-fun QuizResult(score: Int, totalRounds: Int, navController: NavController) {
+fun QuizResult(
+    score: Int,
+    totalRounds: Int,
+    navController: NavController,
+    viewModel: FlagViewModel
+) {
+    LaunchedEffect(Unit) {
+        viewModel.saveResult(score, totalRounds)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

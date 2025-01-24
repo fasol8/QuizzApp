@@ -23,7 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sol.quizzapp.domain.model.quiz.QuizResult
+import com.sol.quizzapp.domain.model.quiz.TriviaCategory
 import com.sol.quizzapp.navigation.QuizzesScreen
+import com.sol.quizzapp.presentation.utils.decodeHtmlEntities
 
 @Composable
 fun QuizScreen(
@@ -53,7 +55,14 @@ fun QuizScreen(
     }
 
     if (isQuizFinished) {
-        ResultScreen(score = score, totalQuestions = quiz.size, navController)
+        ResultQuizScreen(
+            score = score,
+            totalQuestions = quiz.size,
+            navController,
+            viewModel,
+            categoryId,
+            difficultSelected
+        )
     } else if (quiz.isNotEmpty()) {
         val currentQuizItem = quiz[currentQuestionIndex]
         Column(
@@ -104,7 +113,7 @@ fun ItemQuiz(
     Column(modifier = Modifier.padding(8.dp)) {
         Text(quizItem.category, style = MaterialTheme.typography.labelMedium)
         Spacer(Modifier.height(4.dp))
-        Text(quizItem.question, style = MaterialTheme.typography.titleLarge)
+        Text(decodeHtmlEntities(quizItem.question), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
 
         shuffledAnswers.forEach { answer ->
@@ -132,7 +141,7 @@ fun ItemQuiz(
                 ),
                 enabled = !timeExpired && selectedAnswer == null
             ) {
-                Text(answer)
+                Text(decodeHtmlEntities(answer))
             }
 
             if (timeExpired) {
@@ -147,7 +156,22 @@ fun ItemQuiz(
 }
 
 @Composable
-fun ResultScreen(score: Int, totalQuestions: Int, navController: NavHostController) {
+fun ResultQuizScreen(
+    score: Int,
+    totalQuestions: Int,
+    navController: NavHostController,
+    viewModel: QuizViewModel,
+    categoryId: Int,
+    difficultSelected: String
+) {
+    LaunchedEffect(Unit) {
+        viewModel.saveResult(
+            TriviaCategory.fromId(categoryId)!!.displayName,
+            difficultSelected,
+            score,
+            totalQuestions
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -165,7 +189,7 @@ fun ResultScreen(score: Int, totalQuestions: Int, navController: NavHostControll
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = { navController.navigate(QuizzesScreen.QuizMenuScreen.route) }) {
+        Button(onClick = { navController.navigate(QuizzesScreen.MenuScreen.route) }) {
             Text("Volver al menu")
         }
     }

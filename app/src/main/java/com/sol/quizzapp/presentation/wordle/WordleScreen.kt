@@ -38,12 +38,11 @@ fun WordleScreen(
     category: String,
     viewModel: WordleViewModel = hiltViewModel()
 ) {
-    val word by viewModel.word.collectAsState()
     val gameState by viewModel.gameState.collectAsState()
     val targetWord = gameState.targetWord
 
     LaunchedEffect(category) {
-        viewModel.loadRandomWord(category)
+        viewModel.startNewGame(category)
     }
 
     Column(
@@ -58,7 +57,9 @@ fun WordleScreen(
                 gameWon = gameState.gameWon,
                 targetWord = gameState.targetWord,
                 attempts = gameState.attempts,
-                navController = navController
+                navController = navController,
+                viewModel = viewModel,
+                category = category
             )
         } else {
             WordleGameScreen(
@@ -66,7 +67,6 @@ fun WordleScreen(
                 targetWord,
                 gameState,
                 viewModel,
-                word
             )
         }
     }
@@ -78,7 +78,6 @@ fun WordleGameScreen(
     targetWord: String,
     gameState: WordleGameState,
     viewModel: WordleViewModel,
-    word: String?,
 ) {
     Column(
         modifier = Modifier
@@ -86,7 +85,6 @@ fun WordleGameScreen(
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Text(text = word.toString(), modifier = Modifier.padding(32.dp))
         if (gameState.guesses.isEmpty()) {
             LetterBoxes(
                 guess = "",
@@ -187,8 +185,13 @@ fun WordleEndScreen(
     navController: NavController,
     gameWon: Boolean,
     targetWord: String,
-    attempts: Int
+    attempts: Int,
+    category: String,
+    viewModel: WordleViewModel
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.saveResult(targetWord, category, attempts, gameWon)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -212,7 +215,7 @@ fun WordleEndScreen(
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { navController.navigate("WordleMenuScreen") }) {
+        Button(onClick = { navController.navigate("MenuScreen") }) {
             Text("Volver al Menú")
         }
     }

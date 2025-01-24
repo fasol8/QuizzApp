@@ -8,4 +8,5 @@ sealed class QuizzesScreen(val route: String, val label: String) {
     data object FlagScreen : QuizzesScreen("flagScreen", "Flag Screen")
     data object WordleMenuScreen : QuizzesScreen("wordleMenuScreen", "Wordle Menu Screen")
     data object WordleScreen : QuizzesScreen("wordleScreen", "Wordle Screen")
+    data object ResultScreen : QuizzesScreen("resultScreen", "Result Screen")
 }
