@@ -3,10 +3,7 @@ package com.sol.quizzapp.presentation.results
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.sol.quizzapp.data.local.flag.FlagEntity
 import com.sol.quizzapp.data.local.quiz.QuizEntity
 import com.sol.quizzapp.data.local.wordle.WordleEntity
+import com.sol.quizzapp.presentation.utils.AnimatedLazyColumn
 import com.sol.quizzapp.presentation.utils.ExpandableCard
 import java.text.DateFormat
 import java.util.Date
@@ -39,25 +37,13 @@ fun ResultScreen(viewModel: ResultViewModel = hiltViewModel()) {
             .padding(vertical = 32.dp, horizontal = 16.dp)
     ) {
         ExpandableCard("Quiz") {
-            LazyColumn(modifier = Modifier.heightIn(max = 600.dp)) {
-                items(quiz) { quizResult ->
-                    QuizResultItem(quizResult)
-                }
-            }
+            AnimatedLazyColumn(items = quiz) { QuizResultItem(it) }
         }
         ExpandableCard("Flag") {
-            LazyColumn(modifier = Modifier.heightIn(max = 600.dp)) {
-                items(flag) { flagResult ->
-                    FlagResultItem(flagResult)
-                }
-            }
+            AnimatedLazyColumn(items = flag) { FlagResultItem(it) }
         }
         ExpandableCard("Wordle") {
-            LazyColumn(modifier = Modifier.heightIn(max = 600.dp)) {
-                items(wordle) { wordleResult ->
-                    WordleResultItem(wordleResult)
-                }
-            }
+            AnimatedLazyColumn(items = wordle) { WordleResultItem(it) }
         }
     }
 }
@@ -120,5 +106,3 @@ fun WordleResultItem(result: WordleEntity) {
         )
     }
 }
-
-

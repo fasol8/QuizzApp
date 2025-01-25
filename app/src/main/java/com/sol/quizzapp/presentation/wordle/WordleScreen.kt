@@ -1,5 +1,8 @@
 package com.sol.quizzapp.presentation.wordle
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sol.quizzapp.domain.model.wordle.WordleGameState
+import com.sol.quizzapp.ui.theme.correct
+import com.sol.quizzapp.ui.theme.present
 
 @Composable
 fun WordleScreen(
@@ -52,22 +57,24 @@ fun WordleScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (gameState.gameFinished) {
-            WordleEndScreen(
-                gameWon = gameState.gameWon,
-                targetWord = gameState.targetWord,
-                attempts = gameState.attempts,
-                navController = navController,
-                viewModel = viewModel,
-                category = category
-            )
-        } else {
-            WordleGameScreen(
-                currentGuess = gameState.currentGuess,
-                targetWord,
-                gameState,
-                viewModel,
-            )
+        Crossfade(targetState = gameState.gameFinished) { gameFinished ->
+            if (gameFinished) {
+                WordleEndScreen(
+                    gameWon = gameState.gameWon,
+                    targetWord = gameState.targetWord,
+                    attempts = gameState.attempts,
+                    navController = navController,
+                    viewModel = viewModel,
+                    category = category
+                )
+            } else {
+                WordleGameScreen(
+                    currentGuess = gameState.currentGuess,
+                    targetWord,
+                    gameState,
+                    viewModel,
+                )
+            }
         }
     }
 }
@@ -85,22 +92,24 @@ fun WordleGameScreen(
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (gameState.guesses.isEmpty()) {
-            LetterBoxes(
-                guess = "",
-                feedback = emptyList(),
-                targetWord = targetWord,
-                isPlaceholder = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        } else {
-            gameState.guesses.forEachIndexed { index, guess ->
-                val feedback = gameState.feedback.getOrNull(index) ?: emptyList()
-                LetterBoxes(guess = guess, feedback = feedback, targetWord = targetWord)
-                Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.animateContentSize()) {
+            if (gameState.guesses.isEmpty()) {
+                LetterBoxes(
+                    guess = "",
+                    feedback = emptyList(),
+                    targetWord = targetWord,
+                    isPlaceholder = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                gameState.guesses.forEachIndexed { index, guess ->
+                    val feedback = gameState.feedback.getOrNull(index) ?: emptyList()
+                    LetterBoxes(guess = guess, feedback = feedback, targetWord = targetWord)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
-
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = currentGuess,
             onValueChange = { newGuess ->
@@ -156,23 +165,24 @@ fun LetterBoxes(
             }
         } else {
             guess.padEnd(targetWord.length, '-').forEachIndexed { index, char ->
-                val color = when (feedback.getOrNull(index)) {
-                    "correct" -> Color.Green
-                    "present" -> Color.Yellow
-                    "absent" -> Color.Gray
+                val targetColor = when (feedback.getOrNull(index)) {
+                    "correct" -> correct
+                    "present" -> present
+                    "absent" -> Color.DarkGray
                     else -> Color.Transparent
                 }
-
+                val animatedColor by animateColorAsState(targetColor)
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .border(1.dp, Color.Black)
-                        .background(color),
+                        .background(animatedColor),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = if (char != '-') char.toString() else "",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White
                     )
                 }
             }

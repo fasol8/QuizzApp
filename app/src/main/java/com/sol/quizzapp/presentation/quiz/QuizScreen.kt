@@ -1,9 +1,13 @@
 package com.sol.quizzapp.presentation.quiz
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -26,6 +30,7 @@ import com.sol.quizzapp.domain.model.quiz.QuizResult
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
 import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.presentation.utils.decodeHtmlEntities
+import com.sol.quizzapp.ui.theme.correct
 
 @Composable
 fun QuizScreen(
@@ -54,7 +59,52 @@ fun QuizScreen(
         }
     }
 
-    if (isQuizFinished) {
+    AnimatedVisibility(visible = !isQuizFinished) {
+        if (quiz.isNotEmpty()) {
+            val currentQuizItem = quiz[currentQuestionIndex]
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column {
+                    Spacer(Modifier.heightIn(64.dp))
+                    Text(
+                        text = "Tiempo restante: $timerValue segundos",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (timerValue <= 10) Color.Red else Color.Black
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    ItemQuiz(
+                        quizItem = currentQuizItem,
+                        selectedAnswer = selectedAnswer,
+                        onAnswerSelected = { viewModel.onAnswerSelected(it) },
+                        timeExpired = timeExpired
+                    )
+                }
+                AnimatedVisibility(
+                    visible = isNextEnabled,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Button(
+                        onClick = { viewModel.onNextQuestion() },
+                        enabled = isNextEnabled,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally)
+                            .padding(16.dp)
+                    ) {
+                        Text("Siguiente")
+                    }
+                }
+            }
+        }
+    }
+
+    AnimatedVisibility(visible = isQuizFinished) {
         ResultQuizScreen(
             score = score,
             totalQuestions = quiz.size,
@@ -63,39 +113,6 @@ fun QuizScreen(
             categoryId,
             difficultSelected
         )
-    } else if (quiz.isNotEmpty()) {
-        val currentQuizItem = quiz[currentQuestionIndex]
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Spacer(Modifier.heightIn(64.dp))
-                Text(
-                    text = "Tiempo restante: $timerValue segundos",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (timerValue <= 10) Color.Red else Color.Black
-                )
-                Spacer(Modifier.height(16.dp))
-                ItemQuiz(
-                    quizItem = currentQuizItem,
-                    selectedAnswer = selectedAnswer,
-                    onAnswerSelected = { viewModel.onAnswerSelected(it) },
-                    timeExpired = timeExpired
-                )
-            }
-            Button(
-                onClick = { viewModel.onNextQuestion() },
-                enabled = isNextEnabled,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
-            ) {
-                Text("Siguiente")
-            }
-        }
     }
 }
 
@@ -110,7 +127,11 @@ fun ItemQuiz(
         (quizItem.incorrectAnswers + quizItem.correctAnswer).shuffled()
     }
 
-    Column(modifier = Modifier.padding(8.dp)) {
+    Column(
+        modifier = Modifier.padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         Text(quizItem.category, style = MaterialTheme.typography.labelMedium)
         Spacer(Modifier.height(4.dp))
         Text(decodeHtmlEntities(quizItem.question), style = MaterialTheme.typography.titleLarge)
@@ -120,9 +141,9 @@ fun ItemQuiz(
             val isCorrect = answer == quizItem.correctAnswer
             val backgroundColor = when {
                 selectedAnswer == null -> MaterialTheme.colorScheme.primary
-                selectedAnswer == answer && isCorrect -> Color.Green
-                selectedAnswer == answer && !isCorrect -> Color.Red
-                isCorrect -> Color.Green.copy(alpha = 0.5f)
+                selectedAnswer == answer && isCorrect -> correct
+                selectedAnswer == answer && !isCorrect -> MaterialTheme.colorScheme.error
+                isCorrect -> correct.copy(alpha = 0.5f)
                 else -> MaterialTheme.colorScheme.primary
             }
 
@@ -139,7 +160,8 @@ fun ItemQuiz(
                     disabledContainerColor = backgroundColor,
                     disabledContentColor = Color.White
                 ),
-                enabled = !timeExpired && selectedAnswer == null
+                enabled = !timeExpired && selectedAnswer == null,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(decodeHtmlEntities(answer))
             }

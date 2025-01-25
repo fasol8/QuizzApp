@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            QuizzAppTheme {
+            QuizzAppTheme (dynamicColor = false){
                 val navController = rememberNavController()
                 QuizNavHost(navController)
             }

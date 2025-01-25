@@ -1,5 +1,7 @@
 package com.sol.quizzapp.presentation.flag
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,6 +33,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.sol.quizzapp.domain.model.flags.Countries
 import com.sol.quizzapp.domain.model.flags.Question
 import com.sol.quizzapp.navigation.QuizzesScreen
+import com.sol.quizzapp.ui.theme.correct
 
 @Composable
 fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltViewModel()) {
@@ -41,6 +45,8 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
     val selectedAnswer by viewModel.selectedAnswer.collectAsState(null)
     val nextButtonEnabled by viewModel.nextButtonEnabled.collectAsState()
     val timeExpired by viewModel.timeExpired.collectAsState(false)
+
+    val animatedTime by animateIntAsState(targetValue = remainingTime)
 
     LaunchedEffect(remainingTime, selectedAnswer) {
         if (remainingTime > 0 && selectedAnswer == null) {
@@ -61,9 +67,9 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
             Column {
                 Spacer(Modifier.heightIn(64.dp))
                 Text(
-                    text = "Time remaining: $remainingTime",
+                    text = "Time remaining: $animatedTime",
                     fontSize = 18.sp,
-                    color = if (remainingTime <= 5) Color.Red else Color.Black,
+                    color = if (animatedTime <= 5) Color.Red else Color.Black,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Spacer(Modifier.height(16.dp))
@@ -75,11 +81,13 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
                     timeExpired = timeExpired,
                 )
             }
+            val buttonScale by animateFloatAsState(targetValue = if (nextButtonEnabled) 1.1f else 1f)
             Button(
                 onClick = { viewModel.onNextClicked() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
+                    .padding(top = 16.dp)
+                    .scale(buttonScale),
                 enabled = nextButtonEnabled
             ) {
                 Text(text = "Next")
@@ -123,9 +131,9 @@ fun QuizQuestion(
         )
         question.options.forEach { option ->
             val buttonColor = when {
-                timeExpired && option == question.correctCountry -> Color.Green
-                selectedAnswer == option -> if (option == question.correctCountry) Color.Green else Color.Red
-                selectedAnswer != null && option == question.correctCountry -> Color.Green
+                timeExpired && option == question.correctCountry -> correct.copy(alpha = 0.5f)
+                selectedAnswer == option -> if (option == question.correctCountry) correct else MaterialTheme.colorScheme.error
+                selectedAnswer != null && option == question.correctCountry -> correct
                 else -> MaterialTheme.colorScheme.primary
             }
             Button(

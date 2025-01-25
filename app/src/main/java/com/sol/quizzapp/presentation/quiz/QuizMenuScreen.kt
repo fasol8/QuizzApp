@@ -52,7 +52,7 @@ fun QuizMenu(navController: NavController) {
         DifficultyBox(difficultSelected)
         Spacer(Modifier.height(4.dp))
         Button(
-            onClick = { navController.navigate(QuizzesScreen.QuizScreen.route + "/${0.toInt()}-${difficultSelected.value}") },
+            onClick = { navController.navigate(QuizzesScreen.QuizScreen.route + "/${0}-${difficultSelected.value}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -97,7 +97,7 @@ fun DifficultyBox(difficultSelected: MutableState<String>) {
                 val colorSelected = if (difficultSelected.value == difficulty)
                     MaterialTheme.colorScheme.primary
                 else
-                    MaterialTheme.colorScheme.error
+                    MaterialTheme.colorScheme.secondary
                 Button(
                     onClick = { difficultSelected.value = difficulty },
                     colors = ButtonDefaults.buttonColors(
@@ -124,7 +124,7 @@ fun TriviaCategoryGrid(
         GridCells.Fixed(2),
         contentPadding = PaddingValues(16.dp),
     ) {
-        items(categories) { category ->
+        items(categories.drop(1)) { category ->
             TriviaCategoryItem(category) {
                 navController.navigate(QuizzesScreen.QuizScreen.route + "/${category.id}-${difficultSelected.value}")
             }

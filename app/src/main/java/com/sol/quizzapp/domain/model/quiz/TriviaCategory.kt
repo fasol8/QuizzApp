@@ -3,6 +3,7 @@ package com.sol.quizzapp.domain.model.quiz
 import com.sol.quizzapp.R
 
 enum class TriviaCategory(val id: Int, val displayName: String, val icon: Int) {
+    RANDOM(0, "Random", R.drawable.random),
     GENERAL_KNOWLEDGE(9, "General Knowledge", R.drawable.general_knowledge),
     ENTERTAINMENT_BOOKS(10, "Entertainment: Books", R.drawable.books),
     ENTERTAINMENT_FILM(11, "Entertainment: Film", R.drawable.film),
