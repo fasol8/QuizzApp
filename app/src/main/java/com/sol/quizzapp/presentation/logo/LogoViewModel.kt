@@ -1,12 +1,12 @@
-package com.sol.quizzapp.presentation.flag
+package com.sol.quizzapp.presentation.logo
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sol.quizzapp.data.local.flag.FlagEntity
-import com.sol.quizzapp.domain.model.flags.Countries
-import com.sol.quizzapp.domain.model.flags.QuestionCountry
-import com.sol.quizzapp.domain.us.FlagUS
+import com.sol.quizzapp.data.local.logo.LogoEntity
+import com.sol.quizzapp.domain.model.logo.Company
+import com.sol.quizzapp.domain.model.logo.QuestionCompany
+import com.sol.quizzapp.domain.us.LogoUS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +15,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewModel() {
+class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewModel() {
 
     private val totalRounds = 10
-    private val countries = Countries.entries.toTypedArray()
+    private val companies = Company.entries.toTypedArray()
 
-    private val _currentQuestion = MutableStateFlow<QuestionCountry?>(null)
-    val currentQuestion: StateFlow<QuestionCountry?> = _currentQuestion
+    private val _currentQuestion = MutableStateFlow<QuestionCompany?>(null)
+    val currentQuestion: StateFlow<QuestionCompany?> = _currentQuestion
 
     private val _currentRound = MutableStateFlow(1)
     val currentRound: StateFlow<Int> = _currentRound
@@ -35,8 +35,8 @@ class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewMod
     private val _remainingTime = MutableStateFlow(15)
     val remainingTime: StateFlow<Int> = _remainingTime
 
-    private val _selectedAnswer = MutableStateFlow<Countries?>(null)
-    val selectedAnswer: StateFlow<Countries?> = _selectedAnswer
+    private val _selectedAnswer = MutableStateFlow<Company?>(null)
+    val selectedAnswer: StateFlow<Company?> = _selectedAnswer
 
     private val _nextButtonEnabled = MutableStateFlow(false)
     val nextButtonEnabled: StateFlow<Boolean> = _nextButtonEnabled
@@ -45,22 +45,12 @@ class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewMod
     val timeExpired: StateFlow<Boolean> get() = _timeExpired
 
     private var resultSaved = MutableStateFlow(false)
-    private val usedCountries = mutableListOf<Countries>()
+    private val usedCompanies = mutableListOf<Company>()
     private var timerJob: Job? = null
 
     init {
         loadNextQuestion()
         resetResultSaved()
-    }
-
-    private fun generateQuestion(): QuestionCountry {
-        val availableCountries = Countries.entries.filter { it !in usedCountries }
-        val correctCountry = countries.random()
-        usedCountries.add(correctCountry)
-        val incorrectOptions = availableCountries.shuffled().take(3)
-        val allOptions = (listOf(correctCountry) + incorrectOptions).shuffled()
-
-        return QuestionCountry(correctCountry, allOptions)
     }
 
     private fun loadNextQuestion() {
@@ -73,6 +63,16 @@ class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewMod
             _selectedAnswer.value = null
             _nextButtonEnabled.value = false
         }
+    }
+
+    private fun generateQuestion(): QuestionCompany {
+        val availableCompanies = Company.entries.filter { it !in usedCompanies }
+        val correctCompany = companies.random()
+        usedCompanies.add(correctCompany)
+        val incorrectOptions = availableCompanies.shuffled().take(3)
+        val allOptions = (listOf(correctCompany) + incorrectOptions).shuffled()
+
+        return QuestionCompany(correctCompany, allOptions)
     }
 
     fun decrementTimer() {
@@ -91,12 +91,12 @@ class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewMod
         _selectedAnswer.value = null
     }
 
-    fun onAnswerSelected(selectedCountry: Countries) {
+    fun onAnswerSelected(selectedCompany: Company) {
         if (_timeExpired.value == true) return
 
-        _selectedAnswer.value = selectedCountry
+        _selectedAnswer.value = selectedCompany
 
-        if (selectedCountry == _currentQuestion.value?.correctCountry) {
+        if (selectedCompany == _currentQuestion.value?.correctCompany) {
             _score.value += 1
         }
 
@@ -110,12 +110,12 @@ class FlagViewModel @Inject constructor(private val getFlagUS: FlagUS) : ViewMod
     }
 
     fun saveResult(correctAnswers: Int, totalQuestions: Int) {
-        if (resultSaved.value == true) return
+        if (resultSaved.value) return
 
         viewModelScope.launch {
             try {
-                getFlagUS.insertFlag(
-                    FlagEntity(
+                getLogoUS.insertLogo(
+                    LogoEntity(
                         correctAnswers = correctAnswers,
                         totalQuestions = totalQuestions
                     )

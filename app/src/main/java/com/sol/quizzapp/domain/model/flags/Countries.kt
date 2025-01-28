@@ -236,7 +236,7 @@ enum class Countries(val code: String, val title: String) {
     ZIMBABWE("ZW", "Zimbabwe");
 }
 
-data class Question(
+data class QuestionCountry(
     val correctCountry: Countries,
     val options: List<Countries>
 )

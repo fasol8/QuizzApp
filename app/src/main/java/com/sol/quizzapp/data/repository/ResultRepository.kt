@@ -2,6 +2,8 @@ package com.sol.quizzapp.data.repository
 
 import com.sol.quizzapp.data.local.flag.FlagDao
 import com.sol.quizzapp.data.local.flag.FlagEntity
+import com.sol.quizzapp.data.local.logo.LogoDao
+import com.sol.quizzapp.data.local.logo.LogoEntity
 import com.sol.quizzapp.data.local.quiz.QuizDao
 import com.sol.quizzapp.data.local.quiz.QuizEntity
 import com.sol.quizzapp.data.local.wordle.WordleDao
@@ -11,7 +13,8 @@ import javax.inject.Inject
 class ResultRepository @Inject constructor(
     private val quizDao: QuizDao,
     private val flagDao: FlagDao,
-    private val wordleDao: WordleDao
+    private val wordleDao: WordleDao,
+    private val logoDao: LogoDao
 ) {
 
     suspend fun getAllQuiz(): List<QuizEntity> {
@@ -24,5 +27,9 @@ class ResultRepository @Inject constructor(
 
     suspend fun getAllWordle(): List<WordleEntity> {
         return wordleDao.getAllResults()
+    }
+
+    suspend fun getAllLogo(): List<LogoEntity> {
+        return logoDao.getAllResults()
     }
 }

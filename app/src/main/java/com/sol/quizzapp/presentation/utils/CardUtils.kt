@@ -80,6 +80,7 @@ private fun colorCardType(title: String): Color {
         "Quiz" -> Color.LightGray
         "Flag" -> Color.Gray
         "Wordle" -> Color.DarkGray
+        "Logo" -> Color.Black
         else -> Color.Blue
     }
 }

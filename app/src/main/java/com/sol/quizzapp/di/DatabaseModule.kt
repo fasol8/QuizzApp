@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.sol.quizzapp.data.local.QuizzesDatabase
 import com.sol.quizzapp.data.local.flag.FlagDao
+import com.sol.quizzapp.data.local.logo.LogoDao
 import com.sol.quizzapp.data.local.quiz.QuizDao
 import com.sol.quizzapp.data.local.wordle.WordleDao
 import dagger.Module
@@ -40,5 +41,10 @@ object DatabaseModule {
     @Provides
     fun provideWordleDao(database: QuizzesDatabase): WordleDao {
         return database.wordleDao()
+    }
+
+    @Provides
+    fun provideLogoDao(database: QuizzesDatabase): LogoDao {
+        return database.logoDao()
     }
 }

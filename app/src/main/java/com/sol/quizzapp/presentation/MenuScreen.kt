@@ -116,6 +116,32 @@ fun MenuScreen(navController: NavController) {
                     .height(200.dp)
                     .padding(vertical = 16.dp),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+                onClick = { navController.navigate(QuizzesScreen.LogoScreen.route) }) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "LOGO",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.difficult_default),
+                        contentDescription = "game logo",
+                        modifier = Modifier
+                            .size(180.dp)
+                            .padding(12.dp)
+                    )
+                }
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(vertical = 16.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
                 onClick = { navController.navigate(QuizzesScreen.ResultScreen.route) }) {
                 Row(
                     modifier = Modifier.fillMaxSize(),

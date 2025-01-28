@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sol.quizzapp.data.local.flag.FlagEntity
+import com.sol.quizzapp.data.local.logo.LogoEntity
 import com.sol.quizzapp.data.local.quiz.QuizEntity
 import com.sol.quizzapp.data.local.wordle.WordleEntity
 import com.sol.quizzapp.presentation.utils.AnimatedLazyColumn
@@ -26,6 +27,7 @@ fun ResultScreen(viewModel: ResultViewModel = hiltViewModel()) {
     val quiz by viewModel.quizResult.collectAsState(initial = emptyList())
     val flag by viewModel.flagResult.collectAsState(initial = emptyList())
     val wordle by viewModel.wordleResult.collectAsState(initial = emptyList())
+    val logo by viewModel.logoResult.collectAsState(initial = emptyList())
 
     LaunchedEffect(Unit) {
         viewModel.loadData()
@@ -44,6 +46,9 @@ fun ResultScreen(viewModel: ResultViewModel = hiltViewModel()) {
         }
         ExpandableCard("Wordle") {
             AnimatedLazyColumn(items = wordle) { WordleResultItem(it) }
+        }
+        ExpandableCard("Logo") {
+            AnimatedLazyColumn(items = logo) { LogoResultItem(it) }
         }
     }
 }
@@ -100,6 +105,25 @@ fun WordleResultItem(result: WordleEntity) {
         Text(text = "Dificultad: ${result.difficulty}", style = MaterialTheme.typography.bodySmall)
         Text(text = "Gano el juego: ${result.gameWon}", style = MaterialTheme.typography.bodySmall)
         Text(text = "Intentos: ${result.attempts}", style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = "Fecha: ${DateFormat.getDateTimeInstance().format(Date(result.date))}",
+            style = MaterialTheme.typography.titleSmall
+        )
+    }
+}
+
+@Composable
+fun LogoResultItem(result: LogoEntity) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Aciertos: ${result.correctAnswers}/${result.totalQuestions}",
+            style = MaterialTheme.typography.bodySmall
+        )
         Text(
             text = "Fecha: ${DateFormat.getDateTimeInstance().format(Date(result.date))}",
             style = MaterialTheme.typography.titleSmall

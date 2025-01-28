@@ -1,4 +1,4 @@
-package com.sol.quizzapp.presentation.flag
+package com.sol.quizzapp.presentation.logo
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
@@ -30,13 +30,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.sol.quizzapp.domain.model.flags.Countries
-import com.sol.quizzapp.domain.model.flags.QuestionCountry
+import com.sol.quizzapp.BuildConfig
+import com.sol.quizzapp.domain.model.logo.Company
+import com.sol.quizzapp.domain.model.logo.QuestionCompany
 import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.ui.theme.correct
 
 @Composable
-fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltViewModel()) {
+fun LogoScreen(navController: NavController, viewModel: LogoViewModel = hiltViewModel()) {
     val question by viewModel.currentQuestion.collectAsState()
     val currentRound by viewModel.currentRound.collectAsState()
     val score by viewModel.score.collectAsState()
@@ -56,7 +57,7 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
     }
 
     if (quizFinished) {
-        QuizResult(score = score, totalRounds = 10, navController, viewModel)
+        LogoQuizResult(score = score, totalRounds = 10, navController, viewModel)
     } else if (question != null) {
         Column(
             modifier = Modifier
@@ -73,7 +74,7 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Spacer(Modifier.height(16.dp))
-                QuizQuestion(
+                LogoQuizQuestion(
                     question = question!!,
                     currentRound = currentRound,
                     selectedAnswer = selectedAnswer,
@@ -97,12 +98,12 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
 }
 
 @Composable
-fun QuizQuestion(
-    question: QuestionCountry,
+fun LogoQuizQuestion(
+    question: QuestionCompany,
     currentRound: Int,
-    timeExpired: Boolean,
-    selectedAnswer: Countries?,
-    onAnswerSelected: (Countries) -> Unit,
+    selectedAnswer: Company?,
+    onAnswerSelected: (Company) -> Unit,
+    timeExpired: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -123,7 +124,7 @@ fun QuizQuestion(
             textAlign = TextAlign.Center
         )
         Image(
-            painter = rememberAsyncImagePainter("https://flagsapi.com/${question.correctCountry.code}/flat/64.png"),
+            painter = rememberAsyncImagePainter("https://img.logo.dev/${question.correctCompany.domain}?token=${BuildConfig.LOGO_API_KEY}"),
             contentDescription = "Country Flag",
             modifier = Modifier
                 .size(128.dp)
@@ -131,9 +132,9 @@ fun QuizQuestion(
         )
         question.options.forEach { option ->
             val buttonColor = when {
-                timeExpired && option == question.correctCountry -> correct.copy(alpha = 0.5f)
-                selectedAnswer == option -> if (option == question.correctCountry) correct else MaterialTheme.colorScheme.error
-                selectedAnswer != null && option == question.correctCountry -> correct
+                timeExpired && option == question.correctCompany -> correct.copy(alpha = 0.5f)
+                selectedAnswer == option -> if (option == question.correctCompany) correct else MaterialTheme.colorScheme.error
+                selectedAnswer != null && option == question.correctCompany -> correct
                 else -> MaterialTheme.colorScheme.primary
             }
             Button(
@@ -168,11 +169,11 @@ fun QuizQuestion(
 }
 
 @Composable
-fun QuizResult(
+fun LogoQuizResult(
     score: Int,
     totalRounds: Int,
     navController: NavController,
-    viewModel: FlagViewModel
+    viewModel: LogoViewModel
 ) {
     LaunchedEffect(Unit) {
         viewModel.saveResult(score, totalRounds)
