@@ -116,7 +116,7 @@ fun MenuScreen(navController: NavController) {
                     .height(200.dp)
                     .padding(vertical = 16.dp),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
-                onClick = { navController.navigate(QuizzesScreen.LogoScreen.route) }) {
+                onClick = { navController.navigate(QuizzesScreen.LogoMenuScreen.route) }) {
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.SpaceBetween,

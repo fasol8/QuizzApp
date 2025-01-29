@@ -17,9 +17,6 @@ import javax.inject.Inject
 @HiltViewModel
 class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewModel() {
 
-    private val totalRounds = 10
-    private val companies = Company.entries.toTypedArray()
-
     private val _currentQuestion = MutableStateFlow<QuestionCompany?>(null)
     val currentQuestion: StateFlow<QuestionCompany?> = _currentQuestion
 
@@ -44,20 +41,30 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
     private val _timeExpired = MutableStateFlow(false)
     val timeExpired: StateFlow<Boolean> get() = _timeExpired
 
+    private val totalRounds = 10
     private var resultSaved = MutableStateFlow(false)
     private val usedCompanies = mutableListOf<Company>()
     private var timerJob: Job? = null
 
-    init {
-        loadNextQuestion()
+    fun selectCategory(category: String, difficult: String) {
+        if (category == "Random") {
+            loadNextQuestion()
+        } else {
+            val filteredCompanies = Company.entries.filter { it.category == category }
+            if (filteredCompanies.isEmpty()) {
+                _quizFinished.value = true
+                return
+            }
+            loadNextQuestion(filteredCompanies)
+        }
         resetResultSaved()
     }
 
-    private fun loadNextQuestion() {
+    private fun loadNextQuestion(filteredCompanies: List<Company> = Company.entries) {
         if (_currentRound.value > totalRounds) {
             _quizFinished.value = true
         } else {
-            _currentQuestion.value = generateQuestion()
+            _currentQuestion.value = generateQuestion(filteredCompanies)
             _remainingTime.value = 15
             _timeExpired.value = false
             _selectedAnswer.value = null
@@ -65,11 +72,24 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
         }
     }
 
-    private fun generateQuestion(): QuestionCompany {
-        val availableCompanies = Company.entries.filter { it !in usedCompanies }
-        val correctCompany = companies.random()
+    private fun generateQuestion(filteredCompanies: List<Company>): QuestionCompany {
+        val availableCompanies = filteredCompanies.filter { it !in usedCompanies }
+
+        if (availableCompanies.isEmpty()) {
+            _quizFinished.value = true
+            return QuestionCompany(
+                Company.GOOGLE,
+                emptyList()
+            )
+        }
+
+        val correctCompany = availableCompanies.random()
         usedCompanies.add(correctCompany)
-        val incorrectOptions = availableCompanies.shuffled().take(3)
+
+        val incorrectOptions = (filteredCompanies - correctCompany).shuffled().take(3)
+            .ifEmpty {
+                Company.entries.filter { it.category != correctCompany.category }.shuffled().take(3)
+            }
         val allOptions = (listOf(correctCompany) + incorrectOptions).shuffled()
 
         return QuestionCompany(correctCompany, allOptions)
@@ -92,7 +112,7 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
     }
 
     fun onAnswerSelected(selectedCompany: Company) {
-        if (_timeExpired.value == true) return
+        if (_timeExpired.value) return
 
         _selectedAnswer.value = selectedCompany
 

@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sol.quizzapp.presentation.MenuScreen
 import com.sol.quizzapp.presentation.flag.FlagScreen
+import com.sol.quizzapp.presentation.logo.LogoMenuScreen
 import com.sol.quizzapp.presentation.logo.LogoScreen
 import com.sol.quizzapp.presentation.quiz.QuizMenu
 import com.sol.quizzapp.presentation.quiz.QuizScreen
@@ -39,7 +40,18 @@ fun QuizNavHost(navController: NavHostController) {
             val categoryString = navBackStackEntry.arguments?.getString("cat") ?: "default"
             WordleScreen(navController, categoryString)
         }
-        composable(QuizzesScreen.LogoScreen.route) { LogoScreen(navController) }
+        composable(QuizzesScreen.LogoMenuScreen.route) { LogoMenuScreen(navController) }
+        composable(
+            QuizzesScreen.LogoScreen.route + "/{cat} - {difficult}",
+            arguments = listOf(navArgument("cat") { type = NavType.StringType },
+                navArgument("difficult") { type = NavType.StringType }
+            )
+        ) { navBackStackEntry ->
+            val categoryString = navBackStackEntry.arguments?.getString("cat") ?: "default"
+            val difficultSelected =
+                navBackStackEntry.arguments?.getString("difficult") ?: "easy"
+            LogoScreen(navController, categoryString, difficultSelected)
+        }
         composable(QuizzesScreen.ResultScreen.route) { com.sol.quizzapp.presentation.results.ResultScreen() }
     }
 }

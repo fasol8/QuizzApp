@@ -1,10 +1,8 @@
 package com.sol.quizzapp.presentation.quiz
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,15 +26,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
 import com.sol.quizzapp.navigation.QuizzesScreen
-import java.util.Locale
+import com.sol.quizzapp.presentation.utils.DifficultyBox
 
 @Composable
 fun QuizMenu(navController: NavController) {
@@ -62,55 +57,6 @@ fun QuizMenu(navController: NavController) {
         Spacer(Modifier.height(4.dp))
         val categories = TriviaCategory.entries
         TriviaCategoryGrid(categories, navController, difficultSelected)
-    }
-}
-
-@Composable
-fun DifficultyBox(difficultSelected: MutableState<String>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        val difficulties = listOf("easy", "medium", "hard")
-
-        Column {
-            val iconDifficult = when (difficultSelected.value) {
-                "hard" -> R.drawable.hard
-                "medium" -> R.drawable.medium
-                "easy" -> R.drawable.easy
-                else -> R.drawable.difficult_default
-            }
-            Text("Difficult selected")
-            Spacer(Modifier.height(4.dp))
-            Icon(
-                painter = painterResource(iconDifficult),
-                contentDescription = "difficult selected",
-                modifier = Modifier.size(100.dp),
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(text = difficultSelected.value)
-        }
-        Column() {
-            difficulties.forEach { difficulty ->
-                val colorSelected = if (difficultSelected.value == difficulty)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.secondary
-                Button(
-                    onClick = { difficultSelected.value = difficulty },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorSelected,
-                        contentColor = Color.White,
-                        disabledContainerColor = colorSelected,
-                        disabledContentColor = Color.White
-                    )
-                ) {
-                    Text(difficulty.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
-                }
-            }
-        }
     }
 }
 

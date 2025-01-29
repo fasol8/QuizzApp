@@ -1,5 +1,6 @@
 package com.sol.quizzapp.presentation.logo
 
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
@@ -37,7 +38,12 @@ import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.ui.theme.correct
 
 @Composable
-fun LogoScreen(navController: NavController, viewModel: LogoViewModel = hiltViewModel()) {
+fun LogoScreen(
+    navController: NavController,
+    category: String,
+    difficult: String,
+    viewModel: LogoViewModel = hiltViewModel()
+) {
     val question by viewModel.currentQuestion.collectAsState()
     val currentRound by viewModel.currentRound.collectAsState()
     val score by viewModel.score.collectAsState()
@@ -49,6 +55,11 @@ fun LogoScreen(navController: NavController, viewModel: LogoViewModel = hiltView
 
     val animatedTime by animateIntAsState(targetValue = remainingTime)
 
+    Log.i("LOGO Screen", category)
+
+    LaunchedEffect(category) {
+        viewModel.selectCategory(category, difficult)
+    }
     LaunchedEffect(remainingTime, selectedAnswer) {
         if (remainingTime > 0 && selectedAnswer == null) {
             kotlinx.coroutines.delay(1000)
@@ -115,10 +126,15 @@ fun LogoQuizQuestion(
         Text(
             text = "Round $currentRound / 10",
             fontSize = 18.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            text = question.correctCompany.category,
+            fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
         Text(
-            text = "Which country does this flag belong to?",
+            text = "Which company does this logo belong to?",
             fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp),
             textAlign = TextAlign.Center
