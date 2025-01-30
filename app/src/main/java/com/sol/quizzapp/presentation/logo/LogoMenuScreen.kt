@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sol.quizzapp.domain.model.logo.Company
 import com.sol.quizzapp.navigation.QuizzesScreen
@@ -54,7 +53,7 @@ fun LogoMenuScreen(navController: NavController) {
         ) {
             items(categories.size) { index ->
                 CategoryItem(categories[index]) {
-                    navController.navigate(QuizzesScreen.LogoScreen.route + "/${categories[index]} - ${difficultSelected}")
+                    navController.navigate(QuizzesScreen.LogoScreen.route + "/${categories[index]} - ${difficultSelected.value}")
                 }
             }
         }

@@ -1,6 +1,5 @@
 package com.sol.quizzapp.presentation.logo
 
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
@@ -13,9 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +38,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.sol.quizzapp.BuildConfig
 import com.sol.quizzapp.domain.model.logo.Company
 import com.sol.quizzapp.domain.model.logo.QuestionCompany
+import com.sol.quizzapp.domain.model.util.GameMode
 import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.ui.theme.correct
 
@@ -52,10 +57,13 @@ fun LogoScreen(
     val selectedAnswer by viewModel.selectedAnswer.collectAsState(null)
     val nextButtonEnabled by viewModel.nextButtonEnabled.collectAsState()
     val timeExpired by viewModel.timeExpired.collectAsState(false)
+    val gameMode by viewModel.gameMode.collectAsState()
+    val userInput by viewModel.userInput.collectAsState()
+    val attemptsLeft by viewModel.attemptsLeft.collectAsState()
+    val hint by viewModel.hint.collectAsState()
+    val totalRounds by viewModel.totalRounds.collectAsState()
 
     val animatedTime by animateIntAsState(targetValue = remainingTime)
-
-    Log.i("LOGO Screen", category)
 
     LaunchedEffect(category) {
         viewModel.selectCategory(category, difficult)
@@ -68,7 +76,7 @@ fun LogoScreen(
     }
 
     if (quizFinished) {
-        LogoQuizResult(score = score, totalRounds = 10, navController, viewModel)
+        LogoQuizResult(score = score, totalRounds, navController, viewModel)
     } else if (question != null) {
         Column(
             modifier = Modifier
@@ -78,31 +86,56 @@ fun LogoScreen(
         ) {
             Column {
                 Spacer(Modifier.heightIn(64.dp))
+
                 Text(
-                    text = "Time remaining: $animatedTime",
-                    fontSize = 18.sp,
-                    color = if (animatedTime <= 5) Color.Red else Color.Black,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    text = "Round: $currentRound / ${totalRounds}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Spacer(Modifier.height(16.dp))
-                LogoQuizQuestion(
-                    question = question!!,
-                    currentRound = currentRound,
-                    selectedAnswer = selectedAnswer,
-                    onAnswerSelected = { viewModel.onAnswerSelected(it) },
-                    timeExpired = timeExpired,
+                Image(
+                    painter = rememberAsyncImagePainter("https://img.logo.dev/${question!!.correctCompany.domain}?token=${BuildConfig.LOGO_API_KEY}"),
+                    contentDescription = "Country Flag",
+                    modifier = Modifier
+                        .size(128.dp)
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = question!!.correctCompany.category,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(Modifier.height(8.dp))
+                if (gameMode == GameMode.EASY || gameMode == GameMode.MEDIUM) {
+                    LogoQuizQuestion(
+                        question = question!!,
+                        selectedAnswer = selectedAnswer,
+                        onAnswerSelected = { viewModel.onAnswerSelected(it) },
+                        timeExpired = timeExpired,
+                        animatedTime
+                    )
+                } else if (gameMode == GameMode.HARD) {
+                    LogoInputQuestion(userInput, hint, attemptsLeft, viewModel, nextButtonEnabled)
+                }
             }
-            val buttonScale by animateFloatAsState(targetValue = if (nextButtonEnabled) 1.1f else 1f)
-            Button(
-                onClick = { viewModel.onNextClicked() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .scale(buttonScale),
-                enabled = nextButtonEnabled
-            ) {
-                Text(text = "Next")
+
+            if (gameMode == GameMode.EASY || gameMode == GameMode.MEDIUM) {
+                val buttonScale by animateFloatAsState(targetValue = if (nextButtonEnabled) 1.1f else 1f)
+                Button(
+                    onClick = { viewModel.onNextClicked() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .scale(buttonScale),
+                    enabled = nextButtonEnabled
+                ) {
+                    Text(text = "Next")
+                }
             }
         }
     }
@@ -111,10 +144,10 @@ fun LogoScreen(
 @Composable
 fun LogoQuizQuestion(
     question: QuestionCompany,
-    currentRound: Int,
     selectedAnswer: Company?,
     onAnswerSelected: (Company) -> Unit,
-    timeExpired: Boolean
+    timeExpired: Boolean,
+    animatedTime: Int
 ) {
     Column(
         modifier = Modifier
@@ -124,10 +157,12 @@ fun LogoQuizQuestion(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Round $currentRound / 10",
+            text = "Time remaining: $animatedTime",
             fontSize = 18.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = if (animatedTime <= 5) Color.Red else Color.Black,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
+        Spacer(Modifier.height(8.dp))
         Text(
             text = question.correctCompany.category,
             fontSize = 14.sp,
@@ -138,13 +173,6 @@ fun LogoQuizQuestion(
             fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp),
             textAlign = TextAlign.Center
-        )
-        Image(
-            painter = rememberAsyncImagePainter("https://img.logo.dev/${question.correctCompany.domain}?token=${BuildConfig.LOGO_API_KEY}"),
-            contentDescription = "Country Flag",
-            modifier = Modifier
-                .size(128.dp)
-                .padding(bottom = 16.dp)
         )
         question.options.forEach { option ->
             val buttonColor = when {
@@ -181,6 +209,63 @@ fun LogoQuizQuestion(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LogoInputQuestion(
+    userInput: String,
+    hint: String,
+    attemptsLeft: Int,
+    viewModel: LogoViewModel,
+    nextButtonEnabled: Boolean
+) {
+    Text(
+        text = "Escribe el nombre de la compañía",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+
+    OutlinedTextField(
+        value = userInput,
+        onValueChange = { viewModel.onUserInputChanged(it) },
+        label = { Text("Ingrese el nombre") },
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = {
+            viewModel.checkAnswer()
+        })
+    )
+
+    Spacer(Modifier.height(8.dp))
+
+    Text(
+        text = "Intentos restantes: $attemptsLeft",
+        fontSize = 16.sp,
+        color = Color.Gray
+    )
+
+    if (hint.isNotEmpty()) {
+        Text(
+            text = "Pista: $hint",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Red,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+
+    Spacer(Modifier.height(8.dp))
+
+    Button(
+        onClick = { viewModel.checkAnswer() },
+        modifier = Modifier.fillMaxWidth(),
+        enabled = userInput.isNotBlank() && !nextButtonEnabled
+    ) {
+        Text("Comprobar respuesta")
     }
 }
 

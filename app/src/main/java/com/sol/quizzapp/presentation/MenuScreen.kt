@@ -128,7 +128,7 @@ fun MenuScreen(navController: NavController) {
                         modifier = Modifier.padding(16.dp)
                     )
                     Icon(
-                        painter = painterResource(R.drawable.difficult_default),
+                        painter = painterResource(R.drawable.ic_logo),
                         contentDescription = "game logo",
                         modifier = Modifier
                             .size(180.dp)
