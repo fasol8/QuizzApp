@@ -1,7 +1,6 @@
 package com.sol.quizzapp.presentation.logo
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -36,10 +36,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.sol.quizzapp.BuildConfig
+import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.logo.Company
 import com.sol.quizzapp.domain.model.logo.QuestionCompany
 import com.sol.quizzapp.domain.model.util.GameMode
 import com.sol.quizzapp.navigation.QuizzesScreen
+import com.sol.quizzapp.presentation.utils.CircularTimer
+import com.sol.quizzapp.presentation.utils.playSound
+import com.sol.quizzapp.presentation.utils.vibrate
 import com.sol.quizzapp.ui.theme.correct
 
 @Composable
@@ -62,8 +66,8 @@ fun LogoScreen(
     val attemptsLeft by viewModel.attemptsLeft.collectAsState()
     val hint by viewModel.hint.collectAsState()
     val totalRounds by viewModel.totalRounds.collectAsState()
+    val context = LocalContext.current
 
-    val animatedTime by animateIntAsState(targetValue = remainingTime)
 
     LaunchedEffect(category) {
         viewModel.selectCategory(category, difficult)
@@ -72,6 +76,24 @@ fun LogoScreen(
         if (remainingTime > 0 && selectedAnswer == null) {
             kotlinx.coroutines.delay(1000)
             viewModel.decrementTimer()
+        }
+    }
+
+    LaunchedEffect(selectedAnswer) {
+        selectedAnswer?.let { answer ->
+            if (question!!.correctCompany == answer) {
+                playSound(context, R.raw.correct)
+            } else {
+                playSound(context, R.raw.wrong)
+                vibrate(context)
+            }
+        }
+    }
+
+    LaunchedEffect(timeExpired) {
+        if (timeExpired) {
+            playSound(context, R.raw.timer_end)
+            vibrate(context, 500)
         }
     }
 
@@ -117,7 +139,7 @@ fun LogoScreen(
                         selectedAnswer = selectedAnswer,
                         onAnswerSelected = { viewModel.onAnswerSelected(it) },
                         timeExpired = timeExpired,
-                        animatedTime
+                        remainingTime, currentRound
                     )
                 } else if (gameMode == GameMode.HARD) {
                     LogoInputQuestion(userInput, hint, attemptsLeft, viewModel, nextButtonEnabled)
@@ -127,7 +149,10 @@ fun LogoScreen(
             if (gameMode == GameMode.EASY || gameMode == GameMode.MEDIUM) {
                 val buttonScale by animateFloatAsState(targetValue = if (nextButtonEnabled) 1.1f else 1f)
                 Button(
-                    onClick = { viewModel.onNextClicked() },
+                    onClick = {
+                        playSound(context, R.raw.clic)
+                        viewModel.onNextClicked()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
@@ -147,7 +172,8 @@ fun LogoQuizQuestion(
     selectedAnswer: Company?,
     onAnswerSelected: (Company) -> Unit,
     timeExpired: Boolean,
-    animatedTime: Int
+    remainingTime: Int,
+    currentRound: Int
 ) {
     Column(
         modifier = Modifier
@@ -156,17 +182,15 @@ fun LogoQuizQuestion(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Time remaining: $animatedTime",
-            fontSize = 18.sp,
-            color = if (animatedTime <= 5) Color.Red else Color.Black,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = question.correctCompany.category,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
+        CircularTimer(
+            remainingTime,
+            currentRound,
+            Modifier
+                .size(96.dp)
+                .align(Alignment.CenterHorizontally),
+            color1 = Color.Green,
+            color2 = Color.Red,
+            onTimerEnd = { println("¡El tiempo terminó!") }
         )
         Text(
             text = "Which company does this logo belong to?",

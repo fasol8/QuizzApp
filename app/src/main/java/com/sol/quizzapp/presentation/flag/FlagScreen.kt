@@ -1,7 +1,6 @@
 package com.sol.quizzapp.presentation.flag
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,15 +23,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.flags.Countries
 import com.sol.quizzapp.domain.model.flags.QuestionCountry
 import com.sol.quizzapp.navigation.QuizzesScreen
+import com.sol.quizzapp.presentation.utils.CircularTimer
+import com.sol.quizzapp.presentation.utils.playSound
+import com.sol.quizzapp.presentation.utils.vibrate
 import com.sol.quizzapp.ui.theme.correct
 
 @Composable
@@ -45,13 +49,30 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
     val selectedAnswer by viewModel.selectedAnswer.collectAsState(null)
     val nextButtonEnabled by viewModel.nextButtonEnabled.collectAsState()
     val timeExpired by viewModel.timeExpired.collectAsState(false)
-
-    val animatedTime by animateIntAsState(targetValue = remainingTime)
+    val context = LocalContext.current
 
     LaunchedEffect(remainingTime, selectedAnswer) {
         if (remainingTime > 0 && selectedAnswer == null) {
             kotlinx.coroutines.delay(1000)
             viewModel.decrementTimer()
+        }
+    }
+
+    LaunchedEffect(selectedAnswer) {
+        selectedAnswer?.let { answer ->
+            if (question!!.correctCountry == answer) {
+                playSound(context, R.raw.correct)
+            } else {
+                playSound(context, R.raw.wrong)
+                vibrate(context)
+            }
+        }
+    }
+
+    LaunchedEffect(timeExpired) {
+        if (timeExpired) {
+            playSound(context, R.raw.timer_end)
+            vibrate(context, 500)
         }
     }
 
@@ -66,13 +87,16 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
         ) {
             Column {
                 Spacer(Modifier.heightIn(64.dp))
-                Text(
-                    text = "Time remaining: $animatedTime",
-                    fontSize = 18.sp,
-                    color = if (animatedTime <= 5) Color.Red else Color.Black,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                CircularTimer(
+                    remainingTime,
+                    currentRound,
+                    Modifier
+                        .size(96.dp)
+                        .align(Alignment.CenterHorizontally),
+                    color1 = Color.Green,
+                    color2 = Color.Red,
+                    onTimerEnd = { println("¡El tiempo terminó!") }
                 )
-                Spacer(Modifier.height(16.dp))
                 QuizQuestion(
                     question = question!!,
                     currentRound = currentRound,
@@ -83,7 +107,10 @@ fun FlagScreen(navController: NavController, viewModel: FlagViewModel = hiltView
             }
             val buttonScale by animateFloatAsState(targetValue = if (nextButtonEnabled) 1.1f else 1f)
             Button(
-                onClick = { viewModel.onNextClicked() },
+                onClick = {
+                    playSound(context, R.raw.clic)
+                    viewModel.onNextClicked()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)

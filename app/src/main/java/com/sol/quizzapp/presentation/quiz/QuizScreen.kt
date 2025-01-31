@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,13 +24,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.sol.quizzapp.R
 import com.sol.quizzapp.domain.model.quiz.QuizResult
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
 import com.sol.quizzapp.navigation.QuizzesScreen
+import com.sol.quizzapp.presentation.utils.CircularTimer
 import com.sol.quizzapp.presentation.utils.decodeHtmlEntities
+import com.sol.quizzapp.presentation.utils.playSound
+import com.sol.quizzapp.presentation.utils.vibrate
 import com.sol.quizzapp.ui.theme.correct
 
 @Composable
@@ -47,6 +53,7 @@ fun QuizScreen(
     val isQuizFinished by viewModel.isQuizFinished.observeAsState(false)
     val score by viewModel.score.observeAsState(0)
     val timeExpired by viewModel.timeExpired.observeAsState(false)
+    val context = LocalContext.current
 
     LaunchedEffect(categoryId, difficultSelected) {
         viewModel.getLoad(categoryId, difficultSelected)
@@ -56,6 +63,24 @@ fun QuizScreen(
         if (timerValue > 0) {
             kotlinx.coroutines.delay(1000)
             viewModel.decrementTimer()
+        }
+    }
+
+    LaunchedEffect(selectedAnswer) {
+        selectedAnswer?.let { answer ->
+            if (quiz[currentQuestionIndex].correctAnswer == answer) {
+                playSound(context, R.raw.correct)
+            } else {
+                playSound(context, R.raw.wrong)
+                vibrate(context)
+            }
+        }
+    }
+
+    LaunchedEffect(timeExpired) {
+        if (timeExpired) {
+            playSound(context, R.raw.timer_end)
+            vibrate(context, 500)
         }
     }
 
@@ -71,12 +96,16 @@ fun QuizScreen(
             ) {
                 Column {
                     Spacer(Modifier.heightIn(64.dp))
-                    Text(
-                        text = "Tiempo restante: $timerValue segundos",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (timerValue <= 10) Color.Red else Color.Black
+                    CircularTimer(
+                        timerValue,
+                        currentQuestionIndex,
+                        Modifier
+                            .size(96.dp)
+                            .align(Alignment.CenterHorizontally),
+                        color1 = Color.Green,
+                        color2 = Color.Red,
+                        onTimerEnd = { println("¡El tiempo terminó!") }
                     )
-                    Spacer(Modifier.height(16.dp))
                     ItemQuiz(
                         quizItem = currentQuizItem,
                         selectedAnswer = selectedAnswer,
@@ -90,14 +119,17 @@ fun QuizScreen(
                     exit = fadeOut()
                 ) {
                     Button(
-                        onClick = { viewModel.onNextQuestion() },
+                        onClick = {
+                            playSound(context, R.raw.clic)
+                            viewModel.onNextQuestion()
+                        },
                         enabled = isNextEnabled,
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.CenterHorizontally)
                             .padding(16.dp)
                     ) {
-                        Text("Siguiente")
+                        Text("Next")
                     }
                 }
             }
