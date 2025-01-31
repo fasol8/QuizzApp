@@ -29,25 +29,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.domain.model.wordle.WordleGameState
+import com.sol.quizzapp.presentation.utils.ResultScreen
 import com.sol.quizzapp.ui.theme.correct
 import com.sol.quizzapp.ui.theme.present
 
 @Composable
 fun WordleScreen(
     navController: NavController,
-    category: String,
+    difficultMode: DifficultMode,
     viewModel: WordleViewModel = hiltViewModel()
 ) {
     val gameState by viewModel.gameState.collectAsState()
     val targetWord = gameState.targetWord
 
-    LaunchedEffect(category) {
-        viewModel.startNewGame(category)
+    LaunchedEffect(difficultMode) {
+        viewModel.startNewGame(difficultMode)
     }
 
     Column(
@@ -59,13 +60,14 @@ fun WordleScreen(
     ) {
         Crossfade(targetState = gameState.gameFinished) { gameFinished ->
             if (gameFinished) {
-                WordleEndScreen(
+                WordleResultScreen(
                     gameWon = gameState.gameWon,
                     targetWord = gameState.targetWord,
                     attempts = gameState.attempts,
                     navController = navController,
                     viewModel = viewModel,
-                    category = category
+                    difficult = difficultMode.value,
+                    maxAttempts = gameState.maxAttempts
                 )
             } else {
                 WordleGameScreen(
@@ -191,42 +193,25 @@ fun LetterBoxes(
 }
 
 @Composable
-fun WordleEndScreen(
+fun WordleResultScreen(
     navController: NavController,
     gameWon: Boolean,
     targetWord: String,
     attempts: Int,
-    category: String,
-    viewModel: WordleViewModel
+    difficult: String,
+    viewModel: WordleViewModel,
+    maxAttempts: Int
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.saveResult(targetWord, category, attempts, gameWon)
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = if (gameWon) "¡Felicidades! 🎉" else "¡Inténtalo de nuevo!",
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = if (gameWon) {
-                "Acertaste la palabra \"$targetWord\" en $attempts intento(s)."
-            } else {
-                "La palabra era \"$targetWord\". Mejor suerte la próxima vez."
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { navController.navigate("MenuScreen") }) {
-            Text("Volver al Menú")
-        }
-    }
+    ResultScreen(
+        navController = navController,
+        title = if (gameWon) "¡Congratulations!" else "¡Try again!",
+        message = if (gameWon) {
+            "Matched the word \"$targetWord\" in $attempts attempt(s)"
+        } else {
+            "The word was \"$targetWord\". Better luck next time"
+        },
+        score = attempts,
+        totalRounds = maxAttempts,
+        onSaveResult = { viewModel.saveResult(targetWord, difficult, attempts, gameWon) }
+    )
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sol.quizzapp.data.local.wordle.WordleEntity
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.domain.model.wordle.WordleGameState
 import com.sol.quizzapp.domain.us.WordUS
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,27 +21,23 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
 
     private var _resultSaved = MutableStateFlow(false)
 
-    fun startNewGame(category: String) {
+    fun startNewGame(difficulty: DifficultMode) {
         resetResultSaved()
-        loadRandomWord(category)
+        loadRandomWord(difficulty)
     }
 
-    private fun loadRandomWord(category: String) {
+    private fun loadRandomWord(difficulty: DifficultMode) {
         viewModelScope.launch {
             try {
-                val maxAttempts = when (category) {
-                    "easy" -> 10
-                    "medium" -> 8
-                    "hard" -> 6
-                    else -> 8
+                val (maxAttempts, lengthRange) = when (difficulty) {
+                    DifficultMode.EASY -> 10 to (3..4)
+                    DifficultMode.MEDIUM -> 8 to (5..6)
+                    DifficultMode.HARD -> 6 to (7..9)
                 }
-                val length = when (category) {
-                    "easy" -> (3..4).random()
-                    "medium" -> (5..6).random()
-                    "hard" -> (7..9).random()
-                    else -> (3..10).random()
-                }
+
+                val length = lengthRange.random()
                 val response = getWordUS.getWordLength(length)
+
                 if (response.isNotEmpty()) {
                     _gameState.value = WordleGameState(
                         targetWord = response.first(),
@@ -51,20 +48,26 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
                 }
             } catch (e: Exception) {
                 Log.i("Error", e.message.toString())
+                _gameState.value = WordleGameState(
+                    targetWord = "ERROR-HTTP",
+                    maxAttempts = 1
+                )
             }
         }
     }
 
     fun makeGuess(guess: String) {
         val gameState = _gameState.value
-        if (guess.length != gameState.targetWord.length || gameState.gameFinished) return
+        val normalizedGuess = guess.lowercase()
+        val normalizedTargetWord = gameState.targetWord.lowercase()
 
-        val result = evaluateGuess(guess)
-        val newGuesses = gameState.guesses + guess
+        if (normalizedGuess.length != normalizedTargetWord.length || gameState.gameFinished) return
+
+        val result = evaluateGuess(normalizedGuess, normalizedTargetWord)
+        val newGuesses = gameState.guesses + normalizedGuess
         val newFeedback = gameState.feedback + listOf(result)
 
-        if (guess == gameState.targetWord) {
-
+        if (normalizedGuess == normalizedTargetWord) {
             _gameState.value = gameState.copy(
                 gameFinished = true,
                 gameWon = true,
@@ -89,21 +92,21 @@ class WordleViewModel @Inject constructor(private val getWordUS: WordUS) : ViewM
         }
     }
 
-    private fun evaluateGuess(guess: String): List<String> {
-        val targetWord = _gameState.value.targetWord
-        val result =
-            MutableList(guess.length) { "absent" }
-        val targetChars =
-            targetWord.toMutableList()
+    private fun evaluateGuess(guess: String, targetWord: String): List<String> {
+        val normalizedGuess = guess.lowercase()
+        val normalizedTarget = targetWord.lowercase()
 
-        guess.forEachIndexed { index, char ->
-            if (char == targetWord[index]) {
+        val result = MutableList(guess.length) { "absent" }
+        val targetChars = normalizedTarget.toMutableList()
+
+        normalizedGuess.forEachIndexed { index, char ->
+            if (char == normalizedTarget[index]) {
                 result[index] = "correct"
                 targetChars[index] = '_'
             }
         }
 
-        guess.forEachIndexed { index, char ->
+        normalizedGuess.forEachIndexed { index, char ->
             if (result[index] == "absent") {
                 val targetIndex = targetChars.indexOf(char)
                 if (targetIndex != -1) {

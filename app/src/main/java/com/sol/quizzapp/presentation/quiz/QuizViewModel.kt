@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.sol.quizzapp.data.local.quiz.QuizEntity
 import com.sol.quizzapp.domain.model.quiz.QuizResult
 import com.sol.quizzapp.domain.us.QuizUS
+import com.sol.quizzapp.presentation.utils.decodeHtmlEntities
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,6 +23,9 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
 
     private val _currentQuestionIndex = MutableLiveData(0)
     val currentQuestionIndex: LiveData<Int> get() = _currentQuestionIndex
+
+    private val _shuffledOptions = MutableLiveData<List<String>>()
+    val shuffledOptions: LiveData<List<String>> get() = _shuffledOptions
 
     private val _selectedAnswer = MutableLiveData<String?>(null)
     val selectedAnswer: LiveData<String?> get() = _selectedAnswer
@@ -59,6 +63,11 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
                 val response = if (category == 0) getQuizUS.getRandomQuiz(amount) else
                     getQuizUS.getQuiz(amount, category, difficulty)
                 _quiz.value = response.results
+                response.results.firstOrNull()?.let { firstQuestion ->
+                    _shuffledOptions.value =
+                        (firstQuestion.incorrectAnswers + firstQuestion.correctAnswer)
+                            .map { decodeHtmlEntities(it) }.shuffled()
+                }
             } catch (e: Exception) {
                 Log.i("Error", e.message.toString())
             }
@@ -88,6 +97,11 @@ class QuizViewModel @Inject constructor(private val getQuizUS: QuizUS) : ViewMod
             _selectedAnswer.value = null
             _isNextEnabled.value = false
             _timeExpired.value = false
+            _quiz.value?.get(currentIndex + 1)?.let { nextQuestion ->
+                _shuffledOptions.value =
+                    (nextQuestion.incorrectAnswers + nextQuestion.correctAnswer)
+                        .map { decodeHtmlEntities(it) }.shuffled()
+            }
             resetTimer()
         } else {
             _isQuizFinished.value = true

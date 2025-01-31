@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sol.quizzapp.R
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.navigation.QuizzesScreen
 
 @Composable
@@ -37,13 +37,13 @@ fun WordleMenu(navController: NavController) {
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 148.dp)
         )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
                 .padding(8.dp),
-            onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/random") },
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
+            onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/random") }
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -51,7 +51,7 @@ fun WordleMenu(navController: NavController) {
             ) {
                 Icon(
                     painter = painterResource(R.drawable.random),
-                    contentDescription = "difficult random",
+                    contentDescription = "difficulty random",
                     modifier = Modifier
                         .size(170.dp)
                         .padding(12.dp)
@@ -60,67 +60,38 @@ fun WordleMenu(navController: NavController) {
                 Text("Random", style = MaterialTheme.typography.titleLarge)
             }
         }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(8.dp),
-            onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/easy") }) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.easy),
-                    contentDescription = "difficult easy",
-                    modifier = Modifier
-                        .size(170.dp)
-                        .padding(12.dp)
-                )
-                Spacer(Modifier.width(48.dp))
-                Text("Easy", style = MaterialTheme.typography.titleLarge)
+
+        DifficultMode.entries.forEach { difficulty ->
+            val iconRes = when (difficulty) {
+                DifficultMode.EASY -> R.drawable.easy
+                DifficultMode.MEDIUM -> R.drawable.medium
+                DifficultMode.HARD -> R.drawable.hard
             }
-        }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(8.dp),
-            onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/medium") }) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(8.dp),
+                onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/${difficulty.name.lowercase()}") }
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.medium),
-                    contentDescription = "difficult medium",
-                    modifier = Modifier
-                        .size(170.dp)
-                        .padding(12.dp)
-                )
-                Spacer(Modifier.width(48.dp))
-                Text("Medium", style = MaterialTheme.typography.titleLarge)
-            }
-        }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(8.dp),
-            onClick = { navController.navigate(QuizzesScreen.WordleScreen.route + "/hard") }) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.hard),
-                    contentDescription = "difficult hard",
-                    modifier = Modifier
-                        .size(170.dp)
-                        .padding(12.dp)
-                )
-                Spacer(Modifier.width(48.dp))
-                Text("Hard", style = MaterialTheme.typography.titleLarge)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(iconRes),
+                        contentDescription = "difficulty ${difficulty.name.lowercase()}",
+                        modifier = Modifier
+                            .size(170.dp)
+                            .padding(12.dp)
+                    )
+                    Spacer(Modifier.width(48.dp))
+                    Text(
+                        difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
             }
         }
     }

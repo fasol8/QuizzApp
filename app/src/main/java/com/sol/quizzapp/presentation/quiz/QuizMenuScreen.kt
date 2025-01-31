@@ -31,13 +31,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sol.quizzapp.domain.model.quiz.TriviaCategory
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.presentation.utils.DifficultyBox
 
 @Composable
 fun QuizMenu(navController: NavController) {
 
-    val difficultSelected = remember { mutableStateOf("easy") }
+    val difficultSelected = remember { mutableStateOf(DifficultMode.EASY) }
 
     Column(
         modifier = Modifier
@@ -47,7 +48,7 @@ fun QuizMenu(navController: NavController) {
         DifficultyBox(difficultSelected)
         Spacer(Modifier.height(4.dp))
         Button(
-            onClick = { navController.navigate(QuizzesScreen.QuizScreen.route + "/${0}-${difficultSelected.value}") },
+            onClick = { navController.navigate(QuizzesScreen.QuizScreen.route + "/${0}-${difficultSelected.value.value}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -64,7 +65,7 @@ fun QuizMenu(navController: NavController) {
 fun TriviaCategoryGrid(
     categories: List<TriviaCategory>,
     navController: NavController,
-    difficultSelected: MutableState<String>
+    difficultSelected: MutableState<DifficultMode>
 ) {
     LazyVerticalGrid(
         GridCells.Fixed(2),

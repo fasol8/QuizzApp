@@ -15,29 +15,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.sol.quizzapp.R
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import java.util.Locale
 
 @Composable
-fun DifficultyBox(difficultSelected: MutableState<String>) {
+fun DifficultyBox(difficultSelected: MutableState<DifficultMode>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        val difficulties = listOf("easy", "medium", "hard")
-
-        Column {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             val iconDifficult = when (difficultSelected.value) {
-                "hard" -> R.drawable.hard
-                "medium" -> R.drawable.medium
-                "easy" -> R.drawable.easy
-                else -> R.drawable.difficult_default
+                DifficultMode.HARD -> R.drawable.hard
+                DifficultMode.MEDIUM -> R.drawable.medium
+                DifficultMode.EASY -> R.drawable.easy
             }
             Text("Difficult selected")
             Spacer(Modifier.height(4.dp))
@@ -47,10 +49,13 @@ fun DifficultyBox(difficultSelected: MutableState<String>) {
                 modifier = Modifier.size(100.dp),
             )
             Spacer(Modifier.height(4.dp))
-            Text(text = difficultSelected.value)
+            Text(text = difficultSelected.value.name)
         }
-        Column() {
-            difficulties.forEach { difficulty ->
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            DifficultMode.entries.forEach { difficulty ->
                 val colorSelected = if (difficultSelected.value == difficulty)
                     MaterialTheme.colorScheme.primary
                 else
@@ -64,7 +69,9 @@ fun DifficultyBox(difficultSelected: MutableState<String>) {
                         disabledContentColor = Color.White
                     )
                 ) {
-                    Text(difficulty.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+                    Text(
+                        difficulty.name.lowercase()
+                            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
                 }
             }
         }

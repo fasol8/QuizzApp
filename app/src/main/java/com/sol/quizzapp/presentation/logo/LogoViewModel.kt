@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sol.quizzapp.data.local.logo.LogoEntity
 import com.sol.quizzapp.domain.model.logo.Company
 import com.sol.quizzapp.domain.model.logo.QuestionCompany
-import com.sol.quizzapp.domain.model.util.GameMode
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.domain.us.LogoUS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -19,8 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewModel() {
 
-    private val _gameMode = MutableStateFlow(GameMode.EASY)
-    val gameMode: StateFlow<GameMode> = _gameMode
+    private val _gameMode = MutableStateFlow(DifficultMode.EASY)
+    val gameMode: StateFlow<DifficultMode> = _gameMode
 
     private val _totalRounds = MutableStateFlow(6)
     val totalRounds: StateFlow<Int> = _totalRounds
@@ -67,21 +67,21 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
         selectedCategory.value = if (category == "Random") null else category
 
         val mode = when (difficult) {
-            "hard" -> GameMode.HARD
-            "medium" -> GameMode.MEDIUM
-            else -> GameMode.EASY
+            "hard" -> DifficultMode.HARD
+            "medium" -> DifficultMode.MEDIUM
+            else -> DifficultMode.EASY
         }
         selectGameMode(mode)
         resetGame()
         resetResultSaved()
     }
 
-    private fun selectGameMode(mode: GameMode) {
+    private fun selectGameMode(mode: DifficultMode) {
         _gameMode.value = mode
         _totalRounds.value = when (mode) {
-            GameMode.EASY -> 6
-            GameMode.MEDIUM -> 9
-            GameMode.HARD -> 4
+            DifficultMode.EASY -> 6
+            DifficultMode.MEDIUM -> 9
+            DifficultMode.HARD -> 4
         }
     }
 
@@ -125,20 +125,20 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
         usedCompanies.add(correctCompany)
 
         return when (_gameMode.value) {
-            GameMode.EASY, GameMode.MEDIUM -> {
+            DifficultMode.EASY, DifficultMode.MEDIUM -> {
                 val incorrectOptions = availableCompanies.shuffled().take(3)
                 val allOptions = (listOf(correctCompany) + incorrectOptions).shuffled()
                 QuestionCompany(correctCompany, allOptions)
             }
 
-            GameMode.HARD -> {
+            DifficultMode.HARD -> {
                 QuestionCompany(correctCompany, emptyList())
             }
         }
     }
 
     fun onAnswerSelected(selectedCompany: Company) {
-        if (_gameMode.value == GameMode.HARD) return
+        if (_gameMode.value == DifficultMode.HARD) return
         if (_timeExpired.value) return
 
         _selectedAnswer.value = selectedCompany
@@ -152,13 +152,13 @@ class LogoViewModel @Inject constructor(private val getLogoUS: LogoUS) : ViewMod
     }
 
     fun onUserInputChanged(input: String) {
-        if (_gameMode.value == GameMode.HARD) {
+        if (_gameMode.value == DifficultMode.HARD) {
             _userInput.value = input
         }
     }
 
     fun checkAnswer() {
-        if (_gameMode.value != GameMode.HARD) return
+        if (_gameMode.value != DifficultMode.HARD) return
 
         val correctName = _currentQuestion.value?.correctCompany?.name ?: return
 

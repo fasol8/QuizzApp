@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.sol.quizzapp.domain.model.logo.Company
+import com.sol.quizzapp.domain.model.util.DifficultMode
 import com.sol.quizzapp.navigation.QuizzesScreen
 import com.sol.quizzapp.presentation.utils.DifficultyBox
 
@@ -30,7 +31,7 @@ import com.sol.quizzapp.presentation.utils.DifficultyBox
 fun LogoMenuScreen(navController: NavController) {
 
     val categories = Company.getCategories()
-    val difficultSelected = remember { mutableStateOf("easy") }
+    val difficultSelected = remember { mutableStateOf(DifficultMode.EASY) }
 
     Column(
         modifier = Modifier
@@ -40,7 +41,7 @@ fun LogoMenuScreen(navController: NavController) {
         DifficultyBox(difficultSelected)
         Spacer(Modifier.height(4.dp))
         Button(
-            onClick = { navController.navigate(QuizzesScreen.LogoScreen.route + "/Random - ${difficultSelected.value}") },
+            onClick = { navController.navigate(QuizzesScreen.LogoScreen.route + "/Random - ${difficultSelected.value.value}") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
@@ -53,7 +54,7 @@ fun LogoMenuScreen(navController: NavController) {
         ) {
             items(categories.size) { index ->
                 CategoryItem(categories[index]) {
-                    navController.navigate(QuizzesScreen.LogoScreen.route + "/${categories[index]} - ${difficultSelected.value}")
+                    navController.navigate(QuizzesScreen.LogoScreen.route + "/${categories[index]} - ${difficultSelected.value.value}")
                 }
             }
         }
